@@ -9,7 +9,7 @@ app.set('json spaces', 2);
 
 app.get('/', (req, res) => {
   res.json({
-    mensaje: '¡Aplicación desplegada con Dokploy!',
+    mensaje: '¡Despliegue automático desde GitHub funcionando!',
     aplicacion: process.env.APP_NAME || 'UniQuindio WebApp',
     institucion: 'Universidad del Quindío',
     programa: 'Ingeniería de Sistemas y Computación',
