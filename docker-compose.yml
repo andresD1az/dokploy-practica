@@ -1,0 +1,86 @@
+services:
+  app:
+    build:
+      context: https://github.com/andresD1az/dokploy-practica.git#main
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      APP_NAME: UniQuindioCompose
+      APP_VERSION: "1.0.0"
+      DB_HOST: db-service
+      DB_PORT: "3306"
+      DB_NAME: compose_db
+      DB_USER: admin_compose
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Falta MYSQL_PASSWORD}
+    volumes:
+      - ../files/app-data:/app/data
+    depends_on:
+      db-service:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - compose-net
+
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin_compose
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Falta MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: compose_db
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - compose-net
+
+  db-service:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Falta MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: compose_db
+      MYSQL_USER: admin_compose
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Falta MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - compose-net
+
+  phpmyadmin:
+    image: phpmyadmin:5-apache
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db-service
+      PMA_PORT: "3306"
+    depends_on:
+      db-service:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - compose-net
+
+volumes:
+  mongo-data:
+  mysql-data:
+
+networks:
+  compose-net:
+    driver: bridge
