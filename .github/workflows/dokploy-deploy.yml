@@ -1,0 +1,44 @@
+name: Desplegar en Dokploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: dokploy-webapp-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Solicitar despliegue
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 3
+    env:
+      DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+      DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+      DOKPLOY_APPLICATION_ID: Fx9HItmOZwZTFx1V2toIw
+    steps:
+      - name: Comprobar configuracion
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$DOKPLOY_URL" || -z "$DOKPLOY_API_KEY" ]]; then
+            echo "::error::Configura DOKPLOY_URL y DOKPLOY_API_KEY en los secretos de Actions."
+            exit 1
+          fi
+      - name: Desplegar aplicacion
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --connect-timeout 10 --max-time 60 \
+            --request POST "${DOKPLOY_URL%/}/api/application.deploy" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --header "x-api-key: $DOKPLOY_API_KEY" \
+            --data "{\"applicationId\":\"$DOKPLOY_APPLICATION_ID\"}" \
+            --output /dev/null
+          echo "Dokploy acepto la solicitud. Comprueba el resultado del build en Deployments."
