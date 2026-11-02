@@ -41,6 +41,7 @@ app.get('/info', (req, res) => {
 });
 
 app.use('/db', require('./mysql'));
+app.use('/db-postgres', require('./postgres'));
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Aplicación iniciada en el puerto ${PORT}`);
 });
