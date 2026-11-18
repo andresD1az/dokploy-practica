@@ -1,6 +1,5 @@
 # Práctica de administración de infraestructura con Dokploy
 
-**Autor:** Eyner Andrés Díaz Díaz  
 **Institución:** Universidad del Quindío  
 **Programa:** Ingeniería de Sistemas y Computación  
 **Curso:** Administración de Infraestructura TI
